@@ -1,0 +1,25 @@
+services:
+  wyoming-whisper-trt:
+    image: captnspdr/wyoming-whisper-trt:latest-amd64
+    container_name: wyoming-whisper-trt
+    ports:
+      - 10300:10300
+    restart: unless-stopped
+    environment:
+      CUDA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-GPU-c7bb27ec-31a1-88e3-0a36-49c9f24eab3b}" #set dgpu id here if using multiple and you only want 1 specific
+      MODEL:      "${MODEL:-medium}"
+      LANGUAGE:   "${LANGUAGE:-auto}"
+      URI:        "${URI:-tcp://0.0.0.0:10300}"
+      DATA_DIR:   "${DATA_DIR:-/data}"
+      COMPUTE_TYPE: "${COMPUTE_TYPE:-float16}"
+      DEVICE:     "${DEVICE:-cuda}"
+      BEAM_SIZE:  "${BEAM_SIZE:-5}"
+      STREAMING:  "${STREAMING:-false}"
+      DEBUG:      "${DEBUG:-false}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
