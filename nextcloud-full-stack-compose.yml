@@ -1,0 +1,111 @@
+version: "2.1"
+services:
+  nextcloud:
+    image: ghcr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    network_mode: swag_default
+    environment:
+      - PUID=1001
+      - PGID=100
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_HOST_PASSWORD= #add password
+    volumes:
+      - /tank/nextcloud:/config #configure volumes that you need here, I store previews on SSD as below
+      - /tank/nextcloud-data:/data
+      - /srv/dev-disk-by-uuid-98804e17-cc15-4de0-bd6d-db601baa8792/ncpreviews:/data/appdata_ocrue0s1tf5r/preview #change
+      - /etc/localtime:/etc/localtime:ro
+      - type: tmpfs
+        target: /tmp:exec
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+    
+  mariadb:
+    image: ghcr.io/linuxserver/mariadb:latest
+    container_name: nextclouddb
+    network_mode: swag_default
+    environment:
+      - PUID=1001
+      - PGID=100
+      - MYSQL_ROOT_PASSWORD= #set password
+      - TZ=Etc/GMT
+    volumes:
+      - /tank/mariadb:/config #set volume here
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    
+  redis:
+    image: redis
+    container_name: redis
+    hostname: redis
+    network_mode: swag_default
+    environment:
+      - PUID=1001
+      - PGID=100
+      - TZ=Etc/GMT
+    command: redis-server --requirepass password #password here
+    restart: unless-stopped
+    
+  go-vod:
+    image: radialapps/go-vod
+    init: true
+    depends_on:
+      - nextcloud
+    environment:
+      - PUID=1001
+      - PGID=100
+      - NEXTCLOUD_HOST= #your nc url
+      - NEXTCLOUD_ALLOW_INSECURE=1 # (self-signed certs or no HTTPS)
+      - NVIDIA_VISIBLE_DEVICES=all
+    network_mode: swag_default
+    volumes:
+      - /tank/nextcloud-data:/data:ro
+    runtime: nvidia # (NVENC) this relies on nvidia container toolkit, nvidia drivers being installed on the system.
+    restart: unless-stopped
+    
+  nextcloud-whiteboard-server:
+    image: ghcr.io/nextcloud-releases/whiteboard:release
+    network_mode: swag_default
+    ports:
+      - 3002:3002
+    environment:
+      - NEXTCLOUD_URL= #nc url
+      - JWT_SECRET_KEY= #secret key generated as per docs
+      - STORAGE_STRATEGY=lru
+    restart: unless-stopped
+
+  nc-talk:
+    container_name: talk_hpb
+    image: nextcloud/aio-talk:latest
+    network_mode: swag_default
+    init: true
+    ports:
+      - 3478:3478/tcp
+      - 3478:3478/udp
+      - 8081:8081/tcp
+    environment:
+      - NC_DOMAIN= #ncdomain
+      - TALK_HOST= #talk domain
+      - TURN_SECRET= #this must be a long secretpasswordkey
+      - SIGNALING_SECRET= #this must be a long secretpasswordkey
+      - TZ=Europe/London
+      - TALK_PORT=3478
+      - INTERNAL_SECRET= #this must be a long secretpasswordkey
+    restart: unless-stopped
+
+  collabora:
+    image: collabora/code:latest
+    container_name: collabora
+    network_mode: swag_default  #Adjust
+    environment:
+      - username=admin
+      - password= #set password
+      - dictionaries=en
+    cap_add:
+      - MKNOD
+      - SYS_ADMIN
+    ports:
+      - 9980:9980
+    restart: unless-stopped
+    privileged: true
