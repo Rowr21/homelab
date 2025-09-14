@@ -1,0 +1,16 @@
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    network_mode: swag_default
+    environment:
+      - PUID=1001
+      - PGID=100
+      - TZ="Europe/London"
+    volumes:
+          - /tank/heimdall:/config #change volume here
+          - /etc/localtime:/etc/localtime:ro
+    ports:
+     # - 8080:80
+      - 8443:443
+    restart: unless-stopped
