@@ -1,0 +1,7 @@
+name: kokoro
+services:
+    kokoro-fastapi-cpu:
+        ports:
+            - 8880:8880
+        image: ghcr.io/remsky/kokoro-fastapi-cpu
+        restart: always
