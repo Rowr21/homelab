@@ -1,0 +1,23 @@
+services:
+  swag:
+    image: ghcr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=100
+      - URL= #base domain
+      - DUCKDNSTOKEN= #duckdns token
+      - SUBDOMAINS=wildcard
+      - VALIDATION=duckdns
+      - EMAIL= #duckdns email acct
+      - DOCKER_MODS=linuxserver/mods:swag-dashboard #optional
+    volumes:
+      - /tank/swag:/config #set path
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 443:443
+      - 82:80 #optional, I set this due to clash, normally 80:80
+      - 81:81 #for swag dash, optional
+    restart: unless-stopped
