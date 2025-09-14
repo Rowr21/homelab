@@ -1,0 +1,36 @@
+services:
+  db:
+    container_name: db
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:latest
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8.0.27
+    network_mode: swag_default #add to swag network 
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=somepassword #set pw
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress #set pw
+    expose:
+      - 3306
+      - 33060
+  wordpress:
+    container_name: wordpress
+    image: wordpress:latest   
+    volumes: 
+      - /tank/wp-content:/var/www/html/wp-content #set path to wp-content for configuration
+    network_mode: swag_default
+    ports:
+      - 8080:80
+    restart: unless-stopped
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress #set pw
+      - WORDPRESS_DB_NAME=wordpress
+volumes:
+  db_data:
