@@ -1,0 +1,46 @@
+services:
+  ollama:
+    volumes:
+      - /tank/ollama/ollama:/root/.ollama #change volume
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    environment: 
+      - CUDA_VISIBLE_DEVICES= #optional if you want to specify a single gpu
+    restart: unless-stopped
+    image: ollama/ollama:latest
+    ports:
+      - 11434:11434
+    runtime: nvidia
+ 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+         
+
+  ollama-webui:
+    image: ghcr.io/open-webui/open-webui:cuda
+    container_name: open-webui
+    volumes:
+      - /tank/ollama/ollama-webui:/app/backend/data #change volume
+    depends_on:
+      - ollama
+    ports:
+      - 3000:8080
+    environment:
+      - '/ollama/api=http://ollama:11434/api'
+      - OLLAMA_KEEP_ALIVE=-1 #keeps model in RAM forever
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all #all gpus, if only 1, set 1
+              capabilities: [gpu]
