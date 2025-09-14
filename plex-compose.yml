@@ -1,0 +1,24 @@
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - PUID=1001
+      - PGID=100
+      - VERSION=docker
+      - NVIDIA_VISIBLE_DEVICES=all
+      #- NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+    volumes:
+      - /tank/nextcloud-data:/media1 #set your volumes for media here
+      - /tank/Plex:/config #config volume, change
+      - /tmp:/transcode #important for transcoding
+    runtime: nvidia # needs nvidia drivers, container toolkit
+    restart: unless-stopped
