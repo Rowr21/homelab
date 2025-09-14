@@ -1,0 +1,23 @@
+services:
+  mc:
+    image: itzg/minecraft-server
+    tty: true
+    stdin_open: true
+    ports:
+      - "25565:25565"
+      - "8123:8123" #optional for dynmap plugin
+    environment:
+      EULA: "TRUE"
+      UID: 1001
+      GID: 100
+      MAX_MEMORY: 6G
+      TYPE: PAPER #see docs for alternatives
+      DIFFICULTY: normal
+      SERVER_NAME: #edit
+      EXEC_DIRECTLY: true
+
+    volumes:
+      # attach the relative directory 'data' to the container's /data path
+      - /tank/minecraft/data:/data #change
+      - /tank/minecraft/data/plugins:/data/plugins #change
+      - /etc/localtime:/etc/localtime:ro #change
